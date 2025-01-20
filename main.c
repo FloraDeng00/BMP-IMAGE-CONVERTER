@@ -87,3 +87,43 @@ bmp_data read_bmp(char *file_name) {
     return bmp;
 }
 
+void write_bmp(char *file_name, bmp_data bmp) {
+    // Open the output BMP file in binary mode
+    FILE *outputFile = fopen(file_name, "wb");
+    if (!outputFile) {
+        printf("Error opening file %s\n", file_name);
+        fclose(outputFile);
+    }
+
+    // Write bmp header to output file
+    fwrite(&bmp.bmp_header, sizeof(BITMAPFILEHEADER), 1, outputFile);
+
+    // Write dib header to output file
+    fwrite(&bmp.dib_header, sizeof(BITMAPV5HEADER), 1, outputFile);
+
+    // Write the modified pixel data to the output file
+    for (int i = 0; i < bmp.dib_header.bV5Height; i++) {
+        // Write row to output file
+        fwrite(bmp.image[i], sizeof(RGBTRIPLE), bmp.dib_header.bV5Width, outputFile);
+
+        // Determine padding for scanlines
+        int padding = (4 - (bmp.dib_header.bV5Width * sizeof(RGBTRIPLE)) % 4) % 4;
+        // Write padding at end of row
+        for (int k = 0; k < padding; k++) {
+            fputc(0x00, outputFile);
+        }
+    }
+
+    // Close the output file
+    fclose(outputFile);
+}
+
+void free_bmp(bmp_data bmp) {
+    // Free memory for image
+    for (int i = 0; i < bmp.dib_header.bV5Height; i++) {
+        free(bmp.image[i]);
+    }
+    free(bmp.image);
+
+}
+
