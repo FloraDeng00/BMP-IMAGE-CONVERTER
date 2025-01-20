@@ -127,3 +127,94 @@ void free_bmp(bmp_data bmp) {
 
 }
 
+int main() {
+    double COLOR[COLOR_NUMBER][RGB_COLOR_VOLUME] = {
+            {255, 0,   0}, //RED
+            {255, 125, 0}, //ORANGE
+            {255, 255, 0}, //YELLOW
+            {0,   255, 0}, //GREEN
+            {0,   255, 255}, //CYAN
+            {0,   125, 255}, //BLUE
+            {125, 0,   255} //PURPLE
+    };
+
+    bmp_data bmp;
+    char fileName[100];
+    char filePath[100];
+    char processedFilePath[100];
+    int userChoice;
+    int brightenFactor;
+    int saturateFactor;
+    double thresholdFactor;
+    int colorFilterChoice;
+
+    printf("Please enter the file name:\n");
+    scanf("%s", fileName);
+    snprintf(filePath, sizeof(filePath), "../image/%s.bmp", fileName);
+    bmp = read_bmp(filePath);
+    printf("Please choose a prefer way to process the picture (Enter a number):\n");
+    printf("1.grayScale 2.reflect 3.sepia 4.brighten 5.blur 6.saturate 7.thresholdFilter 8.colorFilter 9.invert\n");
+    scanf("%d", &userChoice);
+
+    switch (userChoice) {
+        case 1:
+            grayscale(bmp.dib_header.bV5Height, bmp.dib_header.bV5Width, bmp.image);
+            snprintf(processedFilePath, sizeof(filePath), "../image/%s-grayscale.bmp", fileName);
+            break;
+        case 2:
+            reflect(bmp.dib_header.bV5Height, bmp.dib_header.bV5Width, bmp.image);
+            snprintf(processedFilePath, sizeof(filePath), "../image/%s-reflect.bmp", fileName);
+            break;
+        case 3:
+            sepia(bmp.dib_header.bV5Height, bmp.dib_header.bV5Width, bmp.image);
+            snprintf(processedFilePath, sizeof(filePath), "../image/%s-sepia.bmp", fileName);
+            break;
+        case 4:
+            printf("Enter a positive number to brighten or a negative number to darken the picture(-255~255):\n");
+            while (scanf("%d", &brightenFactor) != 1) {
+                printf("It is not an integer, try again:\n");
+                while (getchar() != '\n');
+            }
+            brighten(bmp.dib_header.bV5Height, bmp.dib_header.bV5Width, bmp.image, brightenFactor);
+            snprintf(processedFilePath, sizeof(filePath), "../image/%s-brighten.bmp", fileName);
+            break;
+        case 5:
+            blur(bmp.dib_header.bV5Height, bmp.dib_header.bV5Width, bmp.image);
+            snprintf(processedFilePath, sizeof(filePath), "../image/%s-blur.bmp", fileName);
+            break;
+        case 6:
+            printf("Enter a positive number to change the saturation:\n");
+            while (scanf("%d", &saturateFactor) != 1) {
+                printf("It is not an integer, try again:\n");
+                while (getchar() != '\n');
+            }
+            saturate(bmp.dib_header.bV5Height, bmp.dib_header.bV5Width, bmp.image, saturateFactor);
+            snprintf(processedFilePath, sizeof(filePath), "../image/%s-saturate.bmp", fileName);
+            break;
+        case 7:
+            printf("Enter a decimal number from 0.0~1.0 to apply the threshold filter:\n");
+            while (scanf("%lf", &thresholdFactor) != 1 || thresholdFactor < 0.0 || thresholdFactor > 1.0) {
+                printf("Invalid input, try again:\n");
+                while (getchar() != '\n');
+            }
+            thresholdFilter(bmp.dib_header.bV5Height, bmp.dib_header.bV5Width, bmp.image, thresholdFactor);
+            snprintf(processedFilePath, sizeof(filePath), "../image/%s-thresholdFilter.bmp", fileName);
+            break;
+        case 8:
+            printf("Choose a color filter:\n");
+            printf("1.RED 2.ORANGE 3.YELLOW 4.GREEN 5.CYAN 6.BLUE 7.PURPLE\n");
+            while (scanf("%d", &colorFilterChoice) != 1 || colorFilterChoice < 1 || colorFilterChoice > 7) {
+                printf("Invalid input, try again:\n");
+                while (getchar() != '\n');
+            }
+            colorFilter(bmp.dib_header.bV5Height, bmp.dib_header.bV5Width, bmp.image, COLOR[colorFilterChoice - 1]);
+            snprintf(processedFilePath, sizeof(filePath), "../image/%s-colorFilter.bmp", fileName);
+            break;
+        case 9:
+            invert(bmp.dib_header.bV5Height, bmp.dib_header.bV5Width, bmp.image);
+            snprintf(processedFilePath, sizeof(filePath), "../image/%s-invert.bmp", fileName);
+            break;
+    }
+    write_bmp(processedFilePath, bmp);
+    free_bmp(bmp);
+}
